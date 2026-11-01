@@ -3,10 +3,13 @@ mod classify;
 mod watcher;
 
 use std::borrow::Cow;
+use std::thread::sleep;
+use std::time::Duration;
 
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::db::{Kind, NewClip};
+use crate::focus;
 use crate::state::{AppState, Settings};
 
 pub use watcher::start;
@@ -127,4 +130,27 @@ pub fn write_to_clipboard(
             cb.set_text(text.to_string()).map_err(|e| e.to_string())
         }
     }
+}
+
+/// Pastes several images into `target`, one after another. A clipboard holds a
+/// single image, so each one is put on it and pasted in turn; the pause gives
+/// the receiving app (chat, editor, ...) time to attach it before the next one.
+/// Blocks, so run it on a worker thread.
+pub fn paste_images(app: &AppHandle, target: isize, items: &[(i64, String)]) {
+    let state = app.state::<AppState>();
+    if !focus::activate(target) {
+        return;
+    }
+    for (i, (id, path)) in items.iter().enumerate() {
+        if write_to_clipboard(&state, "image", None, Some(path)).is_err() {
+            continue;
+        }
+        sleep(Duration::from_millis(80));
+        focus::send_paste();
+        let _ = state.db.lock().unwrap().touch(*id);
+        if i + 1 < items.len() {
+            sleep(Duration::from_millis(450));
+        }
+    }
+    let _ = app.emit("clips-changed", ());
 }

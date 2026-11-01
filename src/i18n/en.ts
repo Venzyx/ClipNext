@@ -46,6 +46,8 @@ export const en = {
   themeSystem: "Windows default",
   themeLight: "Light",
   themeDark: "Dark",
+  multiSelected: "{n} selected",
+  pasteSelected: "Paste {n}",
   mb: "{n} MB",
   items: "{n} items",
 } as const;

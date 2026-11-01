@@ -5,6 +5,7 @@ export const api = {
   listClips: (query: string) =>
     invoke<Clip[]>("list_clips", { query: query.trim() || null }),
   copyClip: (id: number) => invoke<void>("copy_clip", { id }),
+  pasteClips: (ids: number[]) => invoke<void>("paste_clips", { ids }),
   togglePin: (id: number, pinned: boolean) =>
     invoke<void>("toggle_pin", { id, pinned }),
   deleteClip: (id: number) => invoke<void>("delete_clip", { id }),

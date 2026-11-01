@@ -1,6 +1,6 @@
 [package]
 name = "clipnext"
-version = "0.1.0"
+version = "0.2.0"
 description = "Minimal local-only clipboard history manager"
 authors = ["ClipNext contributors"]
 edition = "2024"

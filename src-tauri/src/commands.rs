@@ -188,3 +188,42 @@ pub fn get_thumbnail(state: State<'_, AppState>, id: i64) -> Result<String, Stri
     let bytes = std::fs::read(path).map_err(err)?;
     Ok(format!("data:image/png;base64,{}", crate::base64::encode(&bytes)))
 }
+
+/// Pastes the selected images one after another into the app that had the
+/// focus when the panel opened. Without a paste target (or with auto-paste
+/// off) only the last selected image is copied to the clipboard.
+#[tauri::command]
+pub fn paste_clips(app: AppHandle, state: State<'_, AppState>, ids: Vec<i64>) -> Result<(), String> {
+    let mut images: Vec<(i64, String)> = Vec::new();
+    {
+        let db = state.db.lock().unwrap();
+        for id in ids {
+            if let Some(clip) = db.get(id).map_err(err)? {
+                if clip.kind == "image" {
+                    if let Some(path) = clip.image_path {
+                        images.push((id, path));
+                    }
+                }
+            }
+        }
+    }
+    if images.is_empty() {
+        return Err("no images selected".to_string());
+    }
+    let auto_paste = Settings::load(&state.db.lock().unwrap()).auto_paste;
+    let target = state.take_paste_target();
+    window::hide(&app);
+
+    match (auto_paste, target) {
+        (true, Some(target)) => {
+            std::thread::spawn(move || clipboard::paste_images(&app, target, &images));
+        }
+        _ => {
+            let (id, path) = images.last().expect("checked non-empty");
+            clipboard::write_to_clipboard(&state, "image", None, Some(path))?;
+            state.db.lock().unwrap().touch(*id).map_err(err)?;
+            let _ = app.emit("clips-changed", ());
+        }
+    }
+    Ok(())
+}

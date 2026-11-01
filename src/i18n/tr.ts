@@ -48,6 +48,8 @@ export const tr: Messages = {
   themeSystem: "Windows varsayılanı",
   themeLight: "Açık",
   themeDark: "Koyu",
+  multiSelected: "{n} seçili",
+  pasteSelected: "{n} görseli yapıştır",
   mb: "{n} MB",
   items: "{n} öğe",
 };

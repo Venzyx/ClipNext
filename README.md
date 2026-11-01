@@ -25,6 +25,7 @@ runs silently in the system tray and uses very little memory.
 - **Instant search**, case-insensitive and Turkish-character aware
 - **Global shortcut** (default `Ctrl+Shift+V`, configurable) opens the panel right above the text field you are typing in
 - **One click to paste**: pick an item and it is pasted into the app you were using
+- **Multi-select images**: middle-click several images, then paste them all, one after another
 - **Pin** items so they are never deleted and stay on top
 - **Light, dark or Windows default** theme, English and Turkish interface
 - **Tray app**: the close button hides the window, "Quit" in the tray menu exits
@@ -60,9 +61,20 @@ required; it is already part of Windows 11 and most Windows 10 installs.
 | `↑` / `↓` | Move the selection |
 | `Enter` | Paste the selected item |
 | `Esc` | Clear the search, then close the panel |
+| Middle-click / `Ctrl+click` / `Ctrl+Space` | Add or remove an image in the multi-selection |
+| `Enter` (with a multi-selection) | Paste all selected images in order |
 | `Ctrl+P` | Pin or unpin the selected item |
 | `Delete` | Delete the selected item (search box empty) |
 | `Ctrl+,` | Open or close settings |
+
+### Pasting several images
+
+Middle-click an image (or `Ctrl+click`) to mark it; a numbered badge shows the order.
+Keep marking more images, then press `Enter` or **Paste N**. ClipNext pastes them
+into the app you came from one after another, about half a second apart, so chat
+apps and editors receive each image separately. `Esc` clears the selection.
+Only images can be multi-selected, and the app you paste into must accept
+pasted images. With *Paste automatically* off, only the last image is copied.
 
 ### Settings
 

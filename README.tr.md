@@ -26,6 +26,7 @@ kullanır.
 - **Anlık arama**, büyük/küçük harf ve Türkçe karakter duyarlı
 - **Genel kısayol** (varsayılan `Ctrl+Shift+V`, değiştirilebilir) paneli yazdığın metin kutusunun hemen üstünde açar
 - **Tek tıkla yapıştır**: öğeyi seç, o an kullandığın uygulamaya yapıştırılır
+- **Çoklu görsel seçimi**: farenin orta tuşuyla birkaç görseli işaretle, hepsini art arda yapıştır
 - **Sabitleme**: sabitlenen öğeler silinmez, listenin üstünde kalır
 - **Açık, koyu veya Windows varsayılanı** tema; Türkçe ve İngilizce arayüz
 - **Tepsi uygulaması**: kapat düğmesi pencereyi gizler, tepsi menüsündeki "Çıkış" uygulamayı kapatır
@@ -61,9 +62,20 @@ Windows 11'de ve çoğu Windows 10 kurulumunda zaten vardır.
 | `↑` / `↓` | Seçimi hareket ettir |
 | `Enter` | Seçili öğeyi yapıştır |
 | `Esc` | Aramayı temizle, sonra paneli kapat |
+| Orta tık / `Ctrl+tık` / `Ctrl+Boşluk` | Görseli çoklu seçime ekle veya çıkar |
+| `Enter` (çoklu seçim varken) | Seçili tüm görselleri sırayla yapıştır |
 | `Ctrl+P` | Seçili öğeyi sabitle veya sabitlemeyi kaldır |
 | `Delete` | Seçili öğeyi sil (arama kutusu boşken) |
 | `Ctrl+,` | Ayarları aç veya kapat |
+
+### Birden fazla görsel yapıştırma
+
+Bir görsele orta tıkla (veya `Ctrl+tık`) ve işaretle; numaralı rozet sırayı gösterir.
+İstediğin kadar görsel işaretle, sonra `Enter`'a bas veya **N görseli yapıştır**'a tıkla.
+ClipNext bunları geldiğin uygulamaya yaklaşık yarım saniye arayla art arda yapıştırır;
+böylece sohbet uygulamaları ve editörler her görseli ayrı alır. `Esc` seçimi temizler.
+Yalnızca görseller çoklu seçilebilir ve yapıştırdığın uygulamanın görsel yapıştırmayı
+kabul etmesi gerekir. *Otomatik yapıştır* kapalıysa yalnızca son görsel panoya kopyalanır.
 
 ### Ayarlar
 

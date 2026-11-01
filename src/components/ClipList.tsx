@@ -8,8 +8,10 @@ interface Props {
   clips: Clip[];
   selectedIndex: number;
   searching: boolean;
+  multi: number[];
   onSelect: (index: number) => void;
   onActivate: (clip: Clip) => void;
+  onToggleMulti: (clip: Clip) => void;
   onTogglePin: (clip: Clip) => void;
   onDelete: (clip: Clip) => void;
 }
@@ -18,8 +20,10 @@ export function ClipList({
   clips,
   selectedIndex,
   searching,
+  multi,
   onSelect,
   onActivate,
+  onToggleMulti,
   onTogglePin,
   onDelete,
 }: Props) {
@@ -61,8 +65,11 @@ export function ClipList({
           clip={clip}
           index={index}
           selected={index === selectedIndex}
+          multiIndex={multi.includes(clip.id) ? multi.indexOf(clip.id) + 1 : undefined}
+          multiActive={multi.length > 0}
           onSelect={onSelect}
           onActivate={onActivate}
+          onToggleMulti={onToggleMulti}
           onTogglePin={onTogglePin}
           onDelete={onDelete}
         />

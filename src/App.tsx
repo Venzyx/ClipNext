@@ -40,6 +40,8 @@ function Main({
   const debouncedQuery = useDebounced(query, 120);
   const { clips } = useClips(debouncedQuery);
   const [selected, setSelected] = useState(0);
+  // Ids of the images picked for a multi-paste, in the order they were picked.
+  const [multi, setMulti] = useState<number[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [clearInfo, setClearInfo] = useState<{ count: number; pinned: number } | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -49,8 +51,17 @@ function Main({
     setSelected((s) => Math.min(s, Math.max(clips.length - 1, 0)));
   }, [clips.length]);
 
+  // Forget selected images that were deleted or filtered out of the history.
+  useEffect(() => {
+    setMulti((ids) => {
+      const kept = ids.filter((id) => clips.some((c) => c.id === id));
+      return kept.length === ids.length ? ids : kept;
+    });
+  }, [clips]);
+
   const onShown = useCallback(() => {
     setQuery("");
+    setMulti([]);
     setSelected(0);
     setSettingsOpen(false);
     setClearInfo(null);
@@ -62,6 +73,15 @@ function Main({
   const activate = useCallback((clip: Clip) => {
     void api.copyClip(clip.id);
   }, []);
+  const toggleMulti = useCallback((clip: Clip) => {
+    if (clip.kind !== "image") return;
+    setMulti((ids) =>
+      ids.includes(clip.id) ? ids.filter((id) => id !== clip.id) : [...ids, clip.id],
+    );
+  }, []);
+  const pasteMulti = useCallback(() => {
+    if (multi.length > 0) void api.pasteClips(multi);
+  }, [multi]);
   const togglePin = useCallback((clip: Clip) => {
     void api.togglePin(clip.id, !clip.pinned);
   }, []);
@@ -100,13 +120,23 @@ function Main({
           setSelected((s) => Math.max(s - 1, 0));
           break;
         case "Enter":
-          if (current) {
+          if (multi.length > 0) {
+            e.preventDefault();
+            pasteMulti();
+          } else if (current) {
             e.preventDefault();
             activate(current);
           }
           break;
+        case " ":
+          if ((e.ctrlKey || e.metaKey) && current) {
+            e.preventDefault();
+            toggleMulti(current);
+          }
+          break;
         case "Escape":
-          if (query) setQuery("");
+          if (multi.length > 0) setMulti([]);
+          else if (query) setQuery("");
           else void api.hideWindow();
           break;
         case "Delete":
@@ -123,7 +153,19 @@ function Main({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [clips, selected, query, settingsOpen, clearInfo, activate, remove, togglePin]);
+  }, [
+    clips,
+    selected,
+    query,
+    multi,
+    settingsOpen,
+    clearInfo,
+    activate,
+    remove,
+    togglePin,
+    toggleMulti,
+    pasteMulti,
+  ]);
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden border border-line bg-bg text-ink">
@@ -175,22 +217,48 @@ function Main({
         clips={clips}
         selectedIndex={selected}
         searching={debouncedQuery.trim().length > 0}
+        multi={multi}
         onSelect={setSelected}
         onActivate={activate}
+        onToggleMulti={toggleMulti}
         onTogglePin={togglePin}
         onDelete={remove}
       />
 
-      <footer className="flex shrink-0 items-center justify-between border-t border-line px-4 py-2.5 text-xs text-muted">
-        <span>{t("itemCount", { n: clips.length })}</span>
-        <button
-          type="button"
-          onClick={() => void askClear()}
-          className="rounded-md px-1.5 py-0.5 transition-colors hover:text-danger"
-        >
-          {t("clearAll")}
-        </button>
-      </footer>
+      {multi.length > 0 ? (
+        <footer className="flex shrink-0 items-center justify-between gap-2 border-t border-line bg-surface px-3 py-2.5 animate-fade-in">
+          <span className="pl-1 text-[13px] font-medium text-ink">
+            {t("multiSelected", { n: multi.length })}
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setMulti([])}
+              className="rounded-lg bg-fill px-3 py-1.5 text-[13px] text-ink transition-colors hover:brightness-95"
+            >
+              {t("cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={pasteMulti}
+              className="rounded-lg bg-accent px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:brightness-95"
+            >
+              {t("pasteSelected", { n: multi.length })}
+            </button>
+          </div>
+        </footer>
+      ) : (
+        <footer className="flex shrink-0 items-center justify-between border-t border-line px-4 py-2.5 text-xs text-muted">
+          <span>{t("itemCount", { n: clips.length })}</span>
+          <button
+            type="button"
+            onClick={() => void askClear()}
+            className="rounded-md px-1.5 py-0.5 transition-colors hover:text-danger"
+          >
+            {t("clearAll")}
+          </button>
+        </footer>
+      )}
 
       {settingsOpen && (
         <SettingsPanel

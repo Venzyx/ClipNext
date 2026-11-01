@@ -30,8 +30,13 @@ interface Props {
   clip: Clip;
   index: number;
   selected: boolean;
+  /** 1-based position in the multi-selection, if this image is part of it. */
+  multiIndex?: number;
+  /** True while at least one image is multi-selected. */
+  multiActive: boolean;
   onSelect: (index: number) => void;
   onActivate: (clip: Clip) => void;
+  onToggleMulti: (clip: Clip) => void;
   onTogglePin: (clip: Clip) => void;
   onDelete: (clip: Clip) => void;
 }
@@ -40,8 +45,11 @@ function ClipItemView({
   clip,
   index,
   selected,
+  multiIndex,
+  multiActive,
   onSelect,
   onActivate,
+  onToggleMulti,
   onTogglePin,
   onDelete,
 }: Props) {
@@ -49,6 +57,7 @@ function ClipItemView({
   const isImage = clip.kind === "image";
   const isLink = clip.kind === "link";
   const thumb = useThumbnail(clip.id, isImage);
+  const inMulti = multiIndex !== undefined;
 
   return (
     <li
@@ -56,33 +65,53 @@ function ClipItemView({
       aria-selected={selected}
       data-index={index}
       onMouseMove={() => !selected && onSelect(index)}
-      onClick={() => onActivate(clip)}
+      // Middle button would otherwise start the browser's auto-scroll.
+      onMouseDown={(e) => {
+        if (e.button === 1) e.preventDefault();
+      }}
+      onAuxClick={(e) => {
+        if (e.button === 1 && isImage) {
+          e.preventDefault();
+          onToggleMulti(clip);
+        }
+      }}
+      onClick={(e) => {
+        if (isImage && (multiActive || e.ctrlKey)) onToggleMulti(clip);
+        else onActivate(clip);
+      }}
       className={`group relative flex cursor-default items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors duration-150 ${
         selected ? "bg-surface shadow-soft" : ""
-      }`}
+      } ${inMulti ? "bg-accent/10 ring-1 ring-accent/50" : ""}`}
     >
-      <div
-        className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl ${
-          isImage
-            ? "bg-fill"
-            : isLink
-              ? "bg-accent/12 text-accent"
-              : "bg-fill text-muted"
-        }`}
-      >
-        {isImage && thumb ? (
-          <img
-            src={thumb}
-            alt=""
-            className="h-full w-full object-cover"
-            draggable={false}
-          />
-        ) : isLink ? (
-          <LinkIcon />
-        ) : isImage ? (
-          <ImageIcon />
-        ) : (
-          <TextIcon />
+      <div className="relative shrink-0">
+        <div
+          className={`flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl ${
+            isImage
+              ? "bg-fill"
+              : isLink
+                ? "bg-accent/12 text-accent"
+                : "bg-fill text-muted"
+          }`}
+        >
+          {isImage && thumb ? (
+            <img
+              src={thumb}
+              alt=""
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
+          ) : isLink ? (
+            <LinkIcon />
+          ) : isImage ? (
+            <ImageIcon />
+          ) : (
+            <TextIcon />
+          )}
+        </div>
+        {inMulti && (
+          <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[11px] font-semibold leading-none text-white shadow animate-pop">
+            {multiIndex}
+          </span>
         )}
       </div>
 

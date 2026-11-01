@@ -84,6 +84,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::list_clips,
             commands::copy_clip,
+            commands::paste_clips,
             commands::toggle_pin,
             commands::delete_clip,
             commands::clear_clips,

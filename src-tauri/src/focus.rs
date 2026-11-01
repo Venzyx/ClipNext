@@ -110,24 +110,41 @@ fn key(vk: VIRTUAL_KEY, up: bool) -> INPUT {
     }
 }
 
-/// Brings `target` back to the foreground and sends Ctrl+V to it.
-/// Runs on its own thread so the UI command returns immediately.
-pub fn paste_into(target: isize) {
-    thread::spawn(move || unsafe {
+/// Brings `target` back to the foreground. Blocks briefly, so call it from a
+/// worker thread.
+pub fn activate(target: isize) -> bool {
+    unsafe {
         let hwnd = hwnd_from(target);
         if !IsWindow(Some(hwnd)).as_bool() {
-            return;
+            return false;
         }
         // Let our window finish hiding so focus can return cleanly.
         thread::sleep(Duration::from_millis(60));
         let _ = SetForegroundWindow(hwnd);
-        thread::sleep(Duration::from_millis(60));
-        let inputs = [
-            key(VK_CONTROL, false),
-            key(VK_V, false),
-            key(VK_V, true),
-            key(VK_CONTROL, true),
-        ];
+        thread::sleep(Duration::from_millis(80));
+        true
+    }
+}
+
+/// Sends Ctrl+V to whichever window currently has the focus.
+pub fn send_paste() {
+    let inputs = [
+        key(VK_CONTROL, false),
+        key(VK_V, false),
+        key(VK_V, true),
+        key(VK_CONTROL, true),
+    ];
+    unsafe {
         SendInput(&inputs, size_of::<INPUT>() as i32);
+    }
+}
+
+/// Brings `target` back to the foreground and pastes into it.
+/// Runs on its own thread so the UI command returns immediately.
+pub fn paste_into(target: isize) {
+    thread::spawn(move || {
+        if activate(target) {
+            send_paste();
+        }
     });
 }
